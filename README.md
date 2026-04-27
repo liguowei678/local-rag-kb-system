@@ -6,15 +6,16 @@
 
 ## 项目简介
 
-这是一个**生产可用的企业级 RAG 系统**，从零构建，覆盖 RAG 应用的完整生命周期：
+基于混合检索与 GraphRAG 的企业级本地知识库问答系统，从零构建，覆盖 RAG 应用的完整生命周期：
 
-1. **文档处理**：基于 Docling 解析 PDF/DOCX/Markdown/TXT → 智能分块 → 向量化存储
-2. **混合检索**：语义检索（BGE 向量）+ BM25 关键词检索 → 加权融合结果
-3. **重排序**：Cross-Encoder Reranker 对初筛结果二次排序，提升 Top-K 准确率
-4. **GraphRAG**：知识图谱（Neo4j）+ 大模型实体提取 → 多跳推理 → 生成关联子图描述
-5. **生成**：DeepSeek API + 熔断/降级/重试 → 输出答案
-6. **可观测性**：OpenTelemetry Trace（Jaeger）+ Prometheus Metrics + Grafana Dashboard
-7. **评测**：Ragas 自动化流水线 + 基线对比
+- **文档解析** — IBM Docling 解析 PDF/DOCX/Markdown/TXT，支持表格与复杂版面
+- **智能分块** — LangChain 分层分块策略 + 父块子块结构
+- **混合检索** — BGE 语义向量检索 + BM25 关键词检索，加权融合
+- **重排序** — BGE-Reranker Cross-Encoder 对初筛结果二次排序，提升 Top-K 准确率
+- **GraphRAG** — Neo4j 知识图谱 + DeepSeek 实体提取，多跳推理生成关联子图描述
+- **答案生成** — DeepSeek API，熔断/降级/重试保障服务稳定性
+- **可观测性** — OpenTelemetry 链路追踪 + Prometheus 指标 + Grafana 监控面板
+- **评估** — Ragas 自动化流水线，基线对比保障迭代质量
 
 ### 核心优势
 
