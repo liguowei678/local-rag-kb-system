@@ -1,0 +1,150 @@
+# ============================================
+# .dockerignore - Docker构建忽略文件
+# 排除不需要构建的文件和目录
+# ============================================
+
+# ============ 版本控制和开发工具 ============
+.git/
+.gitignore
+.pre-commit-config.yaml
+
+# ============ Python开发环境 ============
+# Python缓存和编译文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.coverage
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ============ Python虚拟环境 ============
+venv/
+.venv/
+env/
+ENV/
+pyvenv.cfg
+Pipfile
+Pipfile.lock
+poetry.lock
+pyproject.toml.lock
+
+# ============ 运行时数据目录 ============
+# 这些是挂载卷或运行时生成的数据
+logs/
+documents/
+parsed_documents/
+data/
+uploads/
+*.log
+*.log.*
+
+# ============ 测试相关 ============
+tests/
+test_*.py
+*_test.py
+*_test_*.py
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# ============ 部署和配置 ============
+deploy/
+docker/
+docker-compose*.yml
+docker-compose*.yaml
+docker-compose*.override.yml
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+
+# ============ 特定项目文件 ============
+# 临时检查脚本
+final_check.py
+quick_check.py
+check_*.py
+test_*.py
+verify_*.py
+diagnose_*.py
+
+# 演示和示例
+demo/
+examples/
+samples/
+
+# 文档
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+
+# ============ IDE和编辑器配置 ============
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+
+# ============ 模型文件（如果需要可以取消注释） ============
+# *.bin
+# *.pth
+# *.pt
+# *.ckpt
+# *.safetensors
+
+# ============ 自身和Docker相关 ============
+.dockerignore
+# 注意：Dockerfile 在根目录，不能排除！
+
+# ============ 数据库迁移 ============
+alembic/
+alembic.ini
+migrations/
+
+# ============ 其他临时文件 ============
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# ============ 特定文件类型 ============
+# 图片和媒体
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.ico
+*.svg
+*.mp4
+*.mp3
+*.wav
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+
+# 配置文件
+*.yml
+*.yaml
+*.json
+*.toml
+*.ini
+*.cfg
+*.conf

@@ -1,0 +1,10 @@
+# Prometheus 配置
+# 从 RAG 主应用的 /metrics 端点抓取监控数据
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "openclaw-rag"
+    static_configs:
+      - targets: ["openclaw-rag-app:8001"]

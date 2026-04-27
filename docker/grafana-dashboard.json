@@ -1,0 +1,169 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "RAG 监控面板",
+  "panels": [
+    {
+      "title": "请求成功率",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "targets": [
+        {
+          "expr": "sum(rate(rag_requests_total{status=\"ok\"}[5m])) / (sum(rate(rag_requests_total[5m])) + 0.001) * 100",
+          "legendFormat": "成功率"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 95}, {"color": "green", "value": 99}]
+          }
+        }
+      }
+    },
+    {
+      "title": "请求总数 (QPS)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 10, "x": 4, "y": 0},
+      "targets": [
+        {
+          "expr": "rate(rag_requests_total{status=\"ok\"}[5m])",
+          "legendFormat": "成功"
+        },
+        {
+          "expr": "rate(rag_requests_total{status=\"error\"}[5m])",
+          "legendFormat": "失败"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "req/s",
+          "min": 0
+        }
+      }
+    },
+    {
+      "title": "Token 消耗",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 2, "x": 14, "y": 0},
+      "targets": [
+        {
+          "expr": "sum(rate(rag_token_total[5m]))",
+          "legendFormat": "tokens/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      }
+    },
+    {
+      "title": "请求总耗时 (P50 / P95 / P99)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(rag_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(rag_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(rag_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "title": "各环节平均耗时",
+      "type": "barchart",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "targets": [
+        {
+          "expr": "rate(rag_span_duration_seconds_sum{span=\"graphrag_retrieval\",status=\"ok\"}[5m]) / rate(rag_span_duration_seconds_count{span=\"graphrag_retrieval\",status=\"ok\"}[5m])",
+          "legendFormat": "知识图谱检索"
+        },
+        {
+          "expr": "rate(rag_span_duration_seconds_sum{span=\"hybrid_retrieval\",status=\"ok\"}[5m]) / rate(rag_span_duration_seconds_count{span=\"hybrid_retrieval\",status=\"ok\"}[5m])",
+          "legendFormat": "混合检索"
+        },
+        {
+          "expr": "rate(rag_span_duration_seconds_sum{span=\"llm_generation\"}[5m]) / rate(rag_span_duration_seconds_count{span=\"llm_generation\"}[5m])",
+          "legendFormat": "大模型生成"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "title": "请求数量趋势",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "targets": [
+        {
+          "expr": "rate(rag_requests_total{status=\"ok\"}[5m])",
+          "legendFormat": "总QPS"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "req/s",
+          "min": 0
+        }
+      }
+    },
+    {
+      "title": "语义检索召回文档片段数",
+      "type": "timeseries",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 20},
+      "targets": [
+        {
+          "expr": "increase(rag_semantic_doc_count_sum[1m])",
+          "legendFormat": "语义检索文档数"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      }
+    },
+    {
+      "title": "BM25关键词检索召回文档片段数",
+      "type": "timeseries",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 20},
+      "targets": [
+        {
+          "expr": "increase(rag_bm25_doc_count_sum[1m])",
+          "legendFormat": "BM25检索文档数"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s"
+}

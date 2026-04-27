@@ -1,0 +1,9 @@
+{
+  "faithfulness": 0.9084,
+  "answer_relevancy": 0.96,
+  "context_recall": 0.88,
+  "context_precision": 0.6535,
+  "answer_correctness": 0.897,
+  "samples": 50,
+  "timestamp": 1777061179.4740236
+}

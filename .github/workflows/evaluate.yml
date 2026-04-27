@@ -1,0 +1,114 @@
+# RAG 评测流水线
+#
+# 运行时机：每次 push 到 main，或手动触发
+#
+# 需要先在 GitHub/GitLab 项目 Settings → CI/CD → Variables 中添加：
+#   DEEPSEEK_API_KEY    DeepSeek API 密钥
+#   DEEPSEEK_MODEL      模型名（默认 deepseek-v4-flash，可选）
+#   GRAPHRAG_ENABLED    是否启用 GraphRAG（默认 true，可选）
+#
+# 评测步骤：
+#   1. 构建主应用镜像并启动全部依赖（PostgreSQL / Qdrant / Redis / Neo4j / BGE / 主应用）
+#   2. 等待服务就绪后，安装评测脚本依赖
+#   3. 执行 collect → evaluate，与基线对比
+#   4. 输出结果并判定是否通过
+
+name: RAG 评测
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+  DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL || 'deepseek-v4-flash' }}
+  GRAPHRAG_ENABLED: ${{ vars.GRAPHRAG_ENABLED || 'true' }}
+  EMBEDDING_PROVIDER: tei
+  EMBEDDING_MODEL: BAAI/bge-small-zh-v1.5
+  EMBEDDING_DIMENSION: '512'
+  NEO4J_URI: bolt://neo4j:7687
+  NEO4J_USER: neo4j
+  NEO4J_PASSWORD: graphrag123
+  NEO4J_DATABASE: neo4j
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: '5432'
+  POSTGRES_DB: openclaw_rag
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  QDRANT_HOST: qdrant
+  QDRANT_PORT: '6333'
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
+  TEI_BASE_URL: http://tei-bge:80
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码（含模型）
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: 构建主应用镜像
+        run: docker build -t openclaw-local-rag:latest .
+
+      - name: 启动全部服务
+        run: docker compose -f docker/docker-compose.yml up -d
+
+      - name: 等待主应用就绪（最长 120 秒）
+        run: |
+          for i in $(seq 1 24); do
+            sleep 5
+            if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+              echo "主应用已就绪"
+              exit 0
+            fi
+            echo "等待中... ($i)"
+          done
+          echo "主应用未在 120 秒内就绪"
+          exit 1
+
+      - name: 安装评测脚本依赖
+        run: pip install instructor openai requests pydantic
+
+      - name: 执行 collect
+        run: python ragas_test/run_evaluation.py collect
+
+      - name: 执行 evaluate 并与基线对比
+        run: python ragas_test/run_evaluation.py evaluate --compare ragas_test/baseline_results.json
+
+      - name: 输出最终结果
+        run: cat ragas_test/baseline_results.json
+
+      # ─────────────────────────────────────────────────┐
+      # 部署到目标服务器（按需启用）                     │
+      #                                                  │
+      # 在 CI/CD Variables 中添加以下变量：                │
+      #   secrets.DEPLOY_SSH_KEY     SSH 私钥             │
+      #   vars.DEPLOY_HOST           服务器地址           │
+      #   vars.DEPLOY_USER           SSH 用户             │
+      #   vars.DEPLOY_PATH           项目部署路径         │
+      #                                                  │
+      # 取消下方注释即可启用                             │
+      # ─────────────────────────────────────────────────┘
+      # - name: 部署到服务器
+      #   if: success()
+      #   uses: webfactory/ssh-agent@v0.9.0
+      #   with:
+      #     ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+      #
+      # - name: 执行远程部署
+      #   if: success()
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} << 'EOF'
+      #       cd ${{ vars.DEPLOY_PATH }}
+      #       docker compose -f docker/docker-compose.yml pull
+      #       docker compose -f docker/docker-compose.yml up -d --build
+      #     EOF
+
+      - name: 清理
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down --volumes
