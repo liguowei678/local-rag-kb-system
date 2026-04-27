@@ -20,8 +20,7 @@
 
 | 维度 | 说明 |
 |------|------|
-| 🏗️ **多租户隔离** | 基于 collection 命名空间隔离，Qdrant 向量集合 +
-PostgreSQL 权限表实现 |
+| 🏗️ **多租户隔离** | 基于 collection 命名空间隔离，Qdrant 向量集合 + PostgreSQL 权限表实现 |
 | ⚡ **高并发架构** | 全异步（asyncio）+ 无阻塞 BM25 管理器 + 独立 GraphRAG 检索器 |
 | 📄 **Docling 解析** | 使用 IBM Docling 解析 PDF，支持表格、图片、复杂版面 |
 | 🧩 **父块子块** | 分层分块策略（Markdown 标题分割 + RecursiveCharacterTextSplitter） |
